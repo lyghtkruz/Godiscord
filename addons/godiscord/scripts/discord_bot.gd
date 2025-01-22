@@ -4,7 +4,11 @@ extends Node
 
 ## Discord bot token used for Godiscord.
 ## Create a bot at [url=https://discord.com/developers/applications]Discord Dev Portal[/url]
-@export var token: String
+@export var token: String:
+	set(value):
+		token = value
+		DiscordAPI.set_token(value)
+
 @onready var heartbeat_timer: Timer = Timer.new()
 
 ## Emitted when a message is recieved.
@@ -160,11 +164,7 @@ func _start_heartbeat(interval: float):
 ##     discord_bot.register_slash_command("bye", "Says goodbye", options)
 ## [/codeblock]
 func register_slash_command(command_name: String, description: String, options: Array = []):
-	var url = "https://discord.com/api/v9/applications/%s/commands" % user.id
-	var headers = [
-		"Authorization: Bot %s" % token,
-		"Content-Type: application/json"
-	]
+	var url = DiscordAPI.get_url("applications/%s/commands" % user.id)
 	var payload = {
 		"name": command_name,
 		"description": description,
@@ -173,4 +173,4 @@ func register_slash_command(command_name: String, description: String, options: 
 	var http_req = HTTPRequest.new()
 	DiscordRequestHandler.add_child(http_req)
 	http_req.request_completed.connect(func(_r, _c, _h, _b): http_req.queue_free())
-	http_req.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	http_req.request(url, DiscordAPI.headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
